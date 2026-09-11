@@ -20,41 +20,77 @@
       var params = new URLSearchParams(location.search);
       var status = params.get("status") || "invalid";
       var company = params.get("company") || "";
+      var lang = params.get("lang") === "en" ? "en" : "es";
+      document.documentElement.setAttribute("lang", lang);
 
       var STATES = {
-        accepted: {
-          icon: "✓", color: "#16a34a",
-          title: "¡Gracias! Aceptaste la estimación" + (company ? " de " + company : ""),
-          message: "El contratista recibirá tu confirmación y se pondrá en contacto contigo pronto.",
+        es: {
+          accepted: {
+            icon: "✓", color: "#16a34a",
+            title: "¡Gracias! Aceptaste la estimación" + (company ? " de " + company : ""),
+            message: "El contratista recibirá tu confirmación y se pondrá en contacto contigo pronto.",
+          },
+          declined: {
+            icon: "✕", color: "#ef4444",
+            title: "Has declinado la estimación" + (company ? " de " + company : ""),
+            message: "El contratista ha sido notificado. Gracias por tu tiempo.",
+          },
+          already_accepted: {
+            icon: "✓", color: "#16a34a",
+            title: "Ya habías aceptado esta estimación",
+            message: "Tu respuesta ya había quedado registrada anteriormente. El contratista puede verla en su panel.",
+          },
+          already_declined: {
+            icon: "✕", color: "#ef4444",
+            title: "Ya habías declinado esta estimación",
+            message: "Tu respuesta ya había quedado registrada anteriormente. El contratista puede verla en su panel.",
+          },
+          invalid: {
+            icon: "!", color: "#f59e0b",
+            title: "Enlace inválido o vencido",
+            message: "No encontramos esta estimación. Si necesitas ayuda, contacta directamente al contratista.",
+          },
+          error: {
+            icon: "!", color: "#ef4444",
+            title: "Error del servidor",
+            message: "Ocurrió un problema al registrar tu respuesta. Intenta de nuevo más tarde o contacta al contratista.",
+          },
         },
-        declined: {
-          icon: "✕", color: "#ef4444",
-          title: "Has declinado la estimación" + (company ? " de " + company : ""),
-          message: "El contratista ha sido notificado. Gracias por tu tiempo.",
-        },
-        already_accepted: {
-          icon: "✓", color: "#16a34a",
-          title: "Ya habías aceptado esta estimación",
-          message: "Tu respuesta ya había quedado registrada anteriormente. El contratista puede verla en su panel.",
-        },
-        already_declined: {
-          icon: "✕", color: "#ef4444",
-          title: "Ya habías declinado esta estimación",
-          message: "Tu respuesta ya había quedado registrada anteriormente. El contratista puede verla en su panel.",
-        },
-        invalid: {
-          icon: "!", color: "#f59e0b",
-          title: "Enlace inválido o vencido",
-          message: "No encontramos esta estimación. Si necesitas ayuda, contacta directamente al contratista.",
-        },
-        error: {
-          icon: "!", color: "#ef4444",
-          title: "Error del servidor",
-          message: "Ocurrió un problema al registrar tu respuesta. Intenta de nuevo más tarde o contacta al contratista.",
+        en: {
+          accepted: {
+            icon: "✓", color: "#16a34a",
+            title: "Thank you! You accepted the estimate" + (company ? " from " + company : ""),
+            message: "The contractor will receive your confirmation and will reach out to you soon.",
+          },
+          declined: {
+            icon: "✕", color: "#ef4444",
+            title: "You declined the estimate" + (company ? " from " + company : ""),
+            message: "The contractor has been notified. Thank you for your time.",
+          },
+          already_accepted: {
+            icon: "✓", color: "#16a34a",
+            title: "You had already accepted this estimate",
+            message: "Your response was already recorded earlier. The contractor can see it on their panel.",
+          },
+          already_declined: {
+            icon: "✕", color: "#ef4444",
+            title: "You had already declined this estimate",
+            message: "Your response was already recorded earlier. The contractor can see it on their panel.",
+          },
+          invalid: {
+            icon: "!", color: "#f59e0b",
+            title: "Invalid or expired link",
+            message: "We couldn't find this estimate. If you need help, contact the contractor directly.",
+          },
+          error: {
+            icon: "!", color: "#ef4444",
+            title: "Server error",
+            message: "There was a problem recording your response. Try again later or contact the contractor.",
+          },
         },
       };
 
-      var state = STATES[status] || STATES.invalid;
+      var state = STATES[lang][status] || STATES[lang].invalid;
       document.getElementById("icon").style.background = state.color;
       document.getElementById("icon").textContent = state.icon;
       document.getElementById("title").textContent = state.title;

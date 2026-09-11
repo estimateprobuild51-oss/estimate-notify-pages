@@ -32,7 +32,7 @@
     <div class="band"></div>
     <div class="inner">
       <div id="loadingState">
-        <p class="sub">Cargando…</p>
+        <p class="sub" id="loadingText">Cargando…</p>
       </div>
 
       <div id="errorState" hidden>
@@ -40,48 +40,48 @@
       </div>
 
       <div id="formState" hidden>
-        <div class="eyebrow">Estimación aceptada</div>
+        <div class="eyebrow" id="eyebrowText">Estimación aceptada</div>
         <h1 id="projectTitle"></h1>
         <p class="sub" id="totalLine"></p>
-        <p class="sub">Completa estos datos para que el contratista pueda coordinar el inicio del proyecto contigo.</p>
+        <p class="sub" id="introText">Completa estos datos para que el contratista pueda coordinar el inicio del proyecto contigo.</p>
 
         <form id="detailsForm">
           <div class="field">
-            <label for="phone">Teléfono de contacto</label>
+            <label for="phone" id="lblPhone">Teléfono de contacto</label>
             <input type="tel" id="phone" placeholder="(305) 555-0100" required>
           </div>
           <div class="field">
-            <label for="address">Dirección exacta del proyecto</label>
-            <input type="text" id="address" placeholder="Calle, número, ciudad, estado">
+            <label for="address" id="lblAddress">Dirección exacta del proyecto</label>
+            <input type="text" id="address">
           </div>
           <div class="field">
-            <label for="startDate">Fecha deseada de inicio de la obra</label>
+            <label for="startDate" id="lblStartDate">Fecha deseada de inicio de la obra</label>
             <input type="date" id="startDate">
           </div>
           <div class="field">
-            <label for="contactTime">Mejor horario para contactarte</label>
+            <label for="contactTime" id="lblContactTime">Mejor horario para contactarte</label>
             <select id="contactTime">
-              <option value="">Selecciona una opción</option>
-              <option value="Mañana">Mañana</option>
-              <option value="Tarde">Tarde</option>
-              <option value="Noche">Noche</option>
-              <option value="Cualquier horario">Cualquier horario</option>
+              <option value="" id="optChoose">Selecciona una opción</option>
+              <option value="morning" id="optMorning">Mañana</option>
+              <option value="afternoon" id="optAfternoon">Tarde</option>
+              <option value="evening" id="optEvening">Noche</option>
+              <option value="any" id="optAny">Cualquier horario</option>
             </select>
           </div>
           <div class="field">
-            <label for="notes">Notas para el contratista</label>
-            <textarea id="notes" placeholder="Acceso a la propiedad, mascotas, instrucciones especiales, etc. (opcional)"></textarea>
+            <label for="notes" id="lblNotes">Notas para el contratista</label>
+            <textarea id="notes"></textarea>
           </div>
           <button type="submit" id="submitBtn">Enviar datos al contratista</button>
-          <p class="hint">Estos datos solo los verá el contratista de tu proyecto.</p>
+          <p class="hint" id="hintText">Estos datos solo los verá el contratista de tu proyecto.</p>
         </form>
       </div>
 
       <div id="successState" hidden>
         <div class="success">
           <div class="icon">✓</div>
-          <h1>¡Listo!</h1>
-          <p class="sub">Tus datos fueron enviados al contratista. Se pondrá en contacto contigo pronto para coordinar el inicio del proyecto.</p>
+          <h1 id="successTitle">¡Listo!</h1>
+          <p class="sub" id="successText">Tus datos fueron enviados al contratista. Se pondrá en contacto contigo pronto para coordinar el inicio del proyecto.</p>
         </div>
       </div>
     </div>
@@ -92,6 +92,80 @@
       var SUPABASE_URL = "https://xczrlsipuxtrkyjmmvzd.supabase.co";
       var SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJsc2lwdXh0cmt5am1tdnpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg4OTk2ODgsImV4cCI6MjEwNDQ3NTY4OH0.QvTUrRHXSx75RvLO70oWmd_dGf2ZWPcrJGU9pu3WbQ8";
 
+      var params = new URLSearchParams(location.search);
+      var token = params.get("token");
+      var lang = params.get("lang") === "en" ? "en" : "es";
+      document.documentElement.setAttribute("lang", lang);
+
+      var T = {
+        es: {
+          loading: "Cargando…",
+          eyebrow: "Estimación aceptada",
+          intro: "Completa estos datos para que el contratista pueda coordinar el inicio del proyecto contigo.",
+          phone: "Teléfono de contacto",
+          address: "Dirección exacta del proyecto",
+          startDate: "Fecha deseada de inicio de la obra",
+          contactTime: "Mejor horario para contactarte",
+          choose: "Selecciona una opción",
+          morning: "Mañana", afternoon: "Tarde", evening: "Noche", any: "Cualquier horario",
+          notes: "Notas para el contratista",
+          notesPlaceholder: "Acceso a la propiedad, mascotas, instrucciones especiales, etc. (opcional)",
+          submit: "Enviar datos al contratista",
+          submitting: "Enviando…",
+          hint: "Estos datos solo los verá el contratista de tu proyecto.",
+          projectFallback: "Tu proyecto",
+          totalLine: function (m) { return "Monto total: " + m; },
+          successTitle: "¡Listo!",
+          successText: "Tus datos fueron enviados al contratista. Se pondrá en contacto contigo pronto para coordinar el inicio del proyecto.",
+          invalidLink: "Enlace inválido. Si necesitas ayuda, contacta directamente al contratista.",
+          loadError: "No se pudo cargar tu estimación.",
+          sendError: "No se pudo enviar. Intenta de nuevo.",
+        },
+        en: {
+          loading: "Loading…",
+          eyebrow: "Estimate accepted",
+          intro: "Fill out these details so the contractor can coordinate the project start with you.",
+          phone: "Contact phone",
+          address: "Exact project address",
+          startDate: "Desired start date",
+          contactTime: "Best time to contact you",
+          choose: "Choose an option",
+          morning: "Morning", afternoon: "Afternoon", evening: "Evening", any: "Any time",
+          notes: "Notes for the contractor",
+          notesPlaceholder: "Property access, pets, special instructions, etc. (optional)",
+          submit: "Send details to contractor",
+          submitting: "Sending…",
+          hint: "Only your project's contractor will see this information.",
+          projectFallback: "Your project",
+          totalLine: function (m) { return "Total amount: " + m; },
+          successTitle: "All set!",
+          successText: "Your details were sent to the contractor. They'll reach out to you soon to coordinate the project start.",
+          invalidLink: "Invalid link. If you need help, contact the contractor directly.",
+          loadError: "Couldn't load your estimate.",
+          sendError: "Couldn't submit. Try again.",
+        },
+      };
+      var L = T[lang];
+
+      document.getElementById("loadingText").textContent = L.loading;
+      document.getElementById("eyebrowText").textContent = L.eyebrow;
+      document.getElementById("introText").textContent = L.intro;
+      document.getElementById("lblPhone").textContent = L.phone;
+      document.getElementById("lblAddress").textContent = L.address;
+      document.getElementById("lblStartDate").textContent = L.startDate;
+      document.getElementById("lblContactTime").textContent = L.contactTime;
+      document.getElementById("optChoose").textContent = L.choose;
+      document.getElementById("optMorning").textContent = L.morning;
+      document.getElementById("optAfternoon").textContent = L.afternoon;
+      document.getElementById("optEvening").textContent = L.evening;
+      document.getElementById("optAny").textContent = L.any;
+      document.getElementById("lblNotes").textContent = L.notes;
+      document.getElementById("notes").setAttribute("placeholder", L.notesPlaceholder);
+      document.getElementById("submitBtn").textContent = L.submit;
+      document.getElementById("hintText").textContent = L.hint;
+      document.getElementById("successTitle").textContent = L.successTitle;
+      document.getElementById("successText").textContent = L.successText;
+
       function callFunction(body) {
         return fetch(SUPABASE_URL + "/functions/v1/estimate-dispatch", {
           method: "POST",
@@ -99,7 +173,7 @@
           body: JSON.stringify(body),
         }).then(function (res) {
           return res.json().then(function (data) {
-            if (!res.ok) throw new Error(data.error || "Error del servidor");
+            if (!res.ok) throw new Error(data.error || "Error");
             return data;
           });
         });
@@ -116,18 +190,15 @@
         return value.toLocaleString("en-US", { style: "currency", currency: "USD" });
       }
 
-      var params = new URLSearchParams(location.search);
-      var token = params.get("token");
-
       if (!token) {
-        document.getElementById("errorMsg").textContent = "Enlace inválido. Si necesitas ayuda, contacta directamente al contratista.";
+        document.getElementById("errorMsg").textContent = L.invalidLink;
         show("errorState");
         return;
       }
 
       callFunction({ action: "get_estimate_by_token", token: token }).then(function (data) {
-        document.getElementById("projectTitle").textContent = data.projectTitle || "Tu proyecto";
-        document.getElementById("totalLine").textContent = "Monto total: " + formatMoney(data.total);
+        document.getElementById("projectTitle").textContent = data.projectTitle || L.projectFallback;
+        document.getElementById("totalLine").textContent = L.totalLine(formatMoney(data.total));
         if (data.address) document.getElementById("address").value = data.address;
         var d = data.acceptanceDetails;
         if (d) {
@@ -139,7 +210,7 @@
         }
         show("formState");
       }).catch(function (err) {
-        document.getElementById("errorMsg").textContent = err.message || "No se pudo cargar tu estimación.";
+        document.getElementById("errorMsg").textContent = err.message || L.loadError;
         show("errorState");
       });
 
@@ -147,7 +218,7 @@
         e.preventDefault();
         var btn = document.getElementById("submitBtn");
         btn.disabled = true;
-        btn.textContent = "Enviando…";
+        btn.textContent = L.submitting;
         callFunction({
           action: "submit_acceptance_details",
           token: token,
@@ -160,8 +231,8 @@
           show("successState");
         }).catch(function (err) {
           btn.disabled = false;
-          btn.textContent = "Enviar datos al contratista";
-          alert(err.message || "No se pudo enviar. Intenta de nuevo.");
+          btn.textContent = L.submit;
+          alert(err.message || L.sendError);
         });
       });
     })();
