@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Estimate Pro Build</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin:0; padding:24px 16px; background:#f1f5f9; font-family: -apple-system, Segoe UI, Roboto, Arial, sans-serif; min-height:100vh; display:flex; align-items:flex-start; justify-content:center; }
+  .card { max-width:480px; width:100%; background:#ffffff; border-radius:16px; overflow:hidden; box-shadow:0 10px 30px rgba(15,23,42,0.08); }
+  .band { height:6px; background:linear-gradient(90deg, #2178A3, #34A8E2); }
+  .inner { padding:28px 26px 32px; }
+  .eyebrow { font-size:0.72rem; text-transform:uppercase; letter-spacing:0.05em; color:#64748b; font-weight:700; }
+  h1 { font-size:1.15rem; color:#0f172a; margin:4px 0 4px; }
+  .sub { font-size:0.85rem; color:#475569; margin:0 0 20px; line-height:1.5; }
+  .field { margin-bottom:16px; }
+  label { display:block; font-size:0.78rem; font-weight:700; color:#334155; margin-bottom:6px; }
+  input, select, textarea { width:100%; padding:11px 12px; border:1px solid #cbd5e1; border-radius:9px; font-size:0.92rem; font-family:inherit; color:#0f172a; background:#f8fafc; }
+  input:focus, select:focus, textarea:focus { outline:none; border-color:#34A8E2; background:#fff; }
+  textarea { min-height:90px; resize:vertical; }
+  .hint { font-size:0.72rem; color:#94a3b8; margin-top:5px; }
+  button { width:100%; padding:14px; border:none; border-radius:10px; background:linear-gradient(135deg, #34A8E2, #2178A3); color:#fff; font-size:0.95rem; font-weight:700; cursor:pointer; margin-top:6px; }
+  button:disabled { opacity:0.6; cursor:default; }
+  .error-box { background:#fef2f2; border:1px solid #fecaca; color:#b91c1c; border-radius:9px; padding:12px 14px; font-size:0.85rem; margin-bottom:16px; }
+  .success { text-align:center; padding:10px 0; }
+  .success .icon { width:64px; height:64px; border-radius:50%; background:#16a34a; color:#fff; font-size:1.8rem; display:flex; align-items:center; justify-content:center; margin:0 auto 16px; }
+  [hidden] { display:none !important; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="band"></div>
+    <div class="inner">
+      <div id="loadingState">
+        <p class="sub">Cargando…</p>
+      </div>
+
+      <div id="errorState" hidden>
+        <div class="error-box" id="errorMsg"></div>
+      </div>
+
+      <div id="formState" hidden>
+        <div class="eyebrow">Estimación aceptada</div>
+        <h1 id="projectTitle"></h1>
+        <p class="sub" id="totalLine"></p>
+        <p class="sub">Completa estos datos para que el contratista pueda coordinar el inicio del proyecto contigo.</p>
+
+        <form id="detailsForm">
+          <div class="field">
+            <label for="phone">Teléfono de contacto</label>
+            <input type="tel" id="phone" placeholder="(305) 555-0100" required>
+          </div>
+          <div class="field">
+            <label for="address">Dirección exacta del proyecto</label>
+            <input type="text" id="address" placeholder="Calle, número, ciudad, estado">
+          </div>
+          <div class="field">
+            <label for="startDate">Fecha deseada de inicio de la obra</label>
+            <input type="date" id="startDate">
+          </div>
+          <div class="field">
+            <label for="contactTime">Mejor horario para contactarte</label>
+            <select id="contactTime">
+              <option value="">Selecciona una opción</option>
+              <option value="Mañana">Mañana</option>
+              <option value="Tarde">Tarde</option>
+              <option value="Noche">Noche</option>
+              <option value="Cualquier horario">Cualquier horario</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="notes">Notas para el contratista</label>
+            <textarea id="notes" placeholder="Acceso a la propiedad, mascotas, instrucciones especiales, etc. (opcional)"></textarea>
+          </div>
+          <button type="submit" id="submitBtn">Enviar datos al contratista</button>
+          <p class="hint">Estos datos solo los verá el contratista de tu proyecto.</p>
+        </form>
+      </div>
+
+      <div id="successState" hidden>
+        <div class="success">
+          <div class="icon">✓</div>
+          <h1>¡Listo!</h1>
+          <p class="sub">Tus datos fueron enviados al contratista. Se pondrá en contacto contigo pronto para coordinar el inicio del proyecto.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var SUPABASE_URL = "https://xczrlsipuxtrkyjmmvzd.supabase.co";
+      var SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJsc2lwdXh0cmt5am1tdnpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg4OTk2ODgsImV4cCI6MjEwNDQ3NTY4OH0.QvTUrRHXSx75RvLO70oWmd_dGf2ZWPcrJGU9pu3WbQ8";
+
+      function callFunction(body) {
+        return fetch(SUPABASE_URL + "/functions/v1/estimate-dispatch", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: "Bearer " + SUPABASE_ANON_KEY },
+          body: JSON.stringify(body),
+        }).then(function (res) {
+          return res.json().then(function (data) {
+            if (!res.ok) throw new Error(data.error || "Error del servidor");
+            return data;
+          });
+        });
+      }
+
+      function show(id) {
+        ["loadingState", "errorState", "formState", "successState"].forEach(function (s) {
+          document.getElementById(s).hidden = s !== id;
+        });
+      }
+
+      function formatMoney(n) {
+        var value = Number(n) || 0;
+        return value.toLocaleString("en-US", { style: "currency", currency: "USD" });
+      }
+
+      var params = new URLSearchParams(location.search);
+      var token = params.get("token");
+
+      if (!token) {
+        document.getElementById("errorMsg").textContent = "Enlace inválido. Si necesitas ayuda, contacta directamente al contratista.";
+        show("errorState");
+        return;
+      }
+
+      callFunction({ action: "get_estimate_by_token", token: token }).then(function (data) {
+        document.getElementById("projectTitle").textContent = data.projectTitle || "Tu proyecto";
+        document.getElementById("totalLine").textContent = "Monto total: " + formatMoney(data.total);
+        if (data.address) document.getElementById("address").value = data.address;
+        var d = data.acceptanceDetails;
+        if (d) {
+          if (d.phone) document.getElementById("phone").value = d.phone;
+          if (d.address) document.getElementById("address").value = d.address;
+          if (d.startDate) document.getElementById("startDate").value = d.startDate;
+          if (d.contactTime) document.getElementById("contactTime").value = d.contactTime;
+          if (d.notes) document.getElementById("notes").value = d.notes;
+        }
+        show("formState");
+      }).catch(function (err) {
+        document.getElementById("errorMsg").textContent = err.message || "No se pudo cargar tu estimación.";
+        show("errorState");
+      });
+
+      document.getElementById("detailsForm").addEventListener("submit", function (e) {
+        e.preventDefault();
+        var btn = document.getElementById("submitBtn");
+        btn.disabled = true;
+        btn.textContent = "Enviando…";
+        callFunction({
+          action: "submit_acceptance_details",
+          token: token,
+          phone: document.getElementById("phone").value.trim(),
+          address: document.getElementById("address").value.trim(),
+          startDate: document.getElementById("startDate").value,
+          contactTime: document.getElementById("contactTime").value,
+          notes: document.getElementById("notes").value.trim(),
+        }).then(function () {
+          show("successState");
+        }).catch(function (err) {
+          btn.disabled = false;
+          btn.textContent = "Enviar datos al contratista";
+          alert(err.message || "No se pudo enviar. Intenta de nuevo.");
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
